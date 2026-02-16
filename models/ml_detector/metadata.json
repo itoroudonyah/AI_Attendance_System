@@ -1,0 +1,55 @@
+{
+  "last_retrain_date": "2026-02-07T12:39:31.860235",
+  "contamination": 0.1,
+  "adaptation_rate": 0.2,
+  "performance_history": [
+    {
+      "timestamp": "2026-02-07T12:39:31.860241",
+      "model": "isolation_forest",
+      "n_samples": 2940,
+      "n_features": 14,
+      "contamination": 0.1,
+      "anomaly_rate": 0.1,
+      "avg_anomaly_score": 0.18467110325609656,
+      "top_features": [
+        [
+          "dept_hours_dev",
+          0.008173675044093831
+        ],
+        [
+          "work_duration_z",
+          0.007406937090338295
+        ],
+        [
+          "arrival_sin",
+          0.0062564968773041185
+        ],
+        [
+          "lateness_abs",
+          0.006029752049799775
+        ],
+        [
+          "arrival_cos",
+          0.005460528832812839
+        ]
+      ]
+    }
+  ],
+  "feature_importance": {
+    "dept_hours_dev": 0.008173675044093831,
+    "work_duration_z": 0.007406937090338295,
+    "arrival_sin": 0.0062564968773041185,
+    "lateness_abs": 0.006029752049799775,
+    "arrival_cos": 0.005460528832812839,
+    "departure_sin": 0.005253167092467259,
+    "checks_per_hour": 0.004529209530563683,
+    "departure_cos": 0.004368210015610163,
+    "incomplete_pairs_flag": 0.0019963575166777048,
+    "seq_issues_norm": 0.0011305106952393396,
+    "dept_hours_mean": 0.0002393432972402354,
+    "dow_arrival": 0.00012819840743166777,
+    "has_multiple_locs": 0.0,
+    "location_changes_norm": 0.0
+  },
+  "max_features": 50
+}

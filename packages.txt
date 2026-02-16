@@ -1,0 +1,14 @@
+build-essential
+cmake
+pkg-config
+python3-dev
+libopenblas-dev
+liblapack-dev
+libx11-dev
+libgtk-3-dev
+libglib2.0-0
+libsm6
+libxext6
+libxrender1
+ffmpeg
+libboost-all-dev

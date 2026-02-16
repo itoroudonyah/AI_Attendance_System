@@ -1,0 +1,55 @@
+{
+  "last_retrain_date": "2026-02-13T15:21:41.548887",
+  "contamination": 0.08048882681564247,
+  "adaptation_rate": 0.2,
+  "performance_history": [
+    {
+      "timestamp": "2026-02-13T15:21:40.820003",
+      "model": "isolation_forest",
+      "n_samples": 5250,
+      "n_features": 14,
+      "contamination": 0.1,
+      "anomaly_rate": 0.1,
+      "avg_anomaly_score": 0.21746932881999834,
+      "top_features": [
+        [
+          "checks_per_hour",
+          0.009714649275747389
+        ],
+        [
+          "work_duration_z",
+          0.009620988965368227
+        ],
+        [
+          "dept_hours_dev",
+          0.009571298917978033
+        ],
+        [
+          "arrival_sin",
+          0.00723797067821963
+        ],
+        [
+          "departure_sin",
+          0.007169051833274431
+        ]
+      ]
+    }
+  ],
+  "feature_importance": {
+    "checks_per_hour": 0.009714649275747389,
+    "work_duration_z": 0.009620988965368227,
+    "dept_hours_dev": 0.009571298917978033,
+    "arrival_sin": 0.00723797067821963,
+    "departure_sin": 0.007169051833274431,
+    "departure_cos": 0.006982072320330046,
+    "arrival_cos": 0.00667240733940988,
+    "lateness_abs": 0.0037931762133414093,
+    "dept_hours_mean": 0.000166922006300807,
+    "dow_arrival": 0.0001521349024585228,
+    "seq_issues_norm": 2.0986991212279538e-05,
+    "has_multiple_locs": 0.0,
+    "location_changes_norm": 0.0,
+    "incomplete_pairs_flag": -6.021613333517806e-07
+  },
+  "max_features": 50
+}
