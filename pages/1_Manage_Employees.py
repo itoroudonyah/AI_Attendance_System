@@ -11,6 +11,7 @@ from PIL import Image
 import io
 import tempfile
 import time
+import re
 from database import get_connection
 from navigation import apply_sidebar_style, render_sidebar, ensure_session, require_roles, render_page_header
 
@@ -866,6 +867,23 @@ with tab2:
     # -----------------------------
     # Employee Form
     # -----------------------------
+    form_mode = "edit" if st.session_state.get("edit_mode", False) else "add"
+    if st.session_state.get("employee_form_mode") != form_mode:
+        source_data = st.session_state.employee_data if form_mode == "edit" else {}
+        st.session_state.employee_name_input = source_data.get("employee_name", "")
+        st.session_state.job_title_input = source_data.get("job_title", "")
+        st.session_state.email_input = source_data.get("email", "")
+        st.session_state.phone_input = source_data.get("phone", "")
+        hire_date_raw = source_data.get("hire_date", "")
+        default_hire_date = datetime.now().date()
+        if isinstance(hire_date_raw, str) and hire_date_raw:
+            try:
+                default_hire_date = datetime.strptime(hire_date_raw, "%Y-%m-%d").date()
+            except:
+                default_hire_date = datetime.now().date()
+        st.session_state.hire_date_input = default_hire_date
+        st.session_state.employee_form_mode = form_mode
+
     with st.form("employee_form"):
         col1, col2 = st.columns(2)
 
@@ -882,8 +900,9 @@ with tab2:
             
             employee_name = st.text_input(
                 "Full Name *",
-                value=st.session_state.employee_data.get('employee_name', ''),
-                placeholder="John Doe"
+                value=st.session_state.get("employee_name_input", ""),
+                placeholder="John Doe",
+                key="employee_name_input",
             )
 
             # Department dropdown
@@ -891,6 +910,8 @@ with tab2:
             if st.session_state.get("edit_mode", False):
                 current_dept = st.session_state.employee_data.get('department', '')
                 default_index = departments.index(current_dept) if current_dept in departments else 0
+                if current_dept in departments:
+                    st.session_state.department_input = current_dept
             else:
                 default_index = 0
 
@@ -898,13 +919,15 @@ with tab2:
                 "Department *",
                 options=departments,
                 index=default_index,
-                help="Select the employee's department"
+                help="Select the employee's department",
+                key="department_input",
             )
 
             job_title = st.text_input(
-                "Job Title",
-                value=st.session_state.employee_data.get('job_title', ''),
-                placeholder="Software Engineer"
+                "Job Title *",
+                value=st.session_state.get("job_title_input", ""),
+                placeholder="Software Engineer",
+                key="job_title_input",
             )
 
         # Column 2
@@ -918,10 +941,20 @@ with tab2:
                         default_date = datetime.strptime(hire_date_value, "%Y-%m-%d").date()
                 except:
                     default_date = datetime.now().date()
-            hire_date = st.date_input("Hire Date", value=default_date)
+            hire_date = st.date_input("Hire Date *", value=st.session_state.get("hire_date_input", default_date), key="hire_date_input")
 
-            email = st.text_input("Email", value=st.session_state.employee_data.get('email', ''), placeholder="john@company.com")
-            phone = st.text_input("Phone", value=st.session_state.employee_data.get('phone', ''), placeholder="+1234567890")
+            email = st.text_input(
+                "Email *",
+                value=st.session_state.get("email_input", ""),
+                placeholder="john@company.com",
+                key="email_input",
+            )
+            phone = st.text_input(
+                "Phone *",
+                value=st.session_state.get("phone_input", ""),
+                placeholder="+1234567890",
+                key="phone_input",
+            )
 
             # Status checkbox
             if st.session_state.get("edit_mode", False):
@@ -952,13 +985,15 @@ with tab2:
             uploaded_file = st.file_uploader(
                 "Change Employee Photo (Optional)",
                 type=['jpg','jpeg','png'],
-                help="Upload a new photo to replace the existing one"
+                help="Upload a new photo to replace the existing one",
+                key="employee_photo_upload",
             )
         else:
             uploaded_file = st.file_uploader(
                 "Upload Employee Photo (Optional)",
                 type=['jpg','jpeg','png'],
-                help="Upload a clear front-facing photo for face recognition"
+                help="Upload a clear front-facing photo for face recognition",
+                key="employee_photo_upload",
             )
 
         if uploaded_file is not None:
@@ -1101,28 +1136,47 @@ with tab2:
         # Handle form submission - FIXED VERSION
         # -----------------------------
         if submit_button:
+            employee_id = employee_id.strip() if isinstance(employee_id, str) else employee_id
+            employee_name = employee_name.strip() if isinstance(employee_name, str) else employee_name
+            department = department.strip() if isinstance(department, str) else department
+            job_title = job_title.strip() if isinstance(job_title, str) else job_title
+            email = email.strip() if isinstance(email, str) else email
+            phone = phone.strip() if isinstance(phone, str) else phone
+
             role_db = user_role.lower() if isinstance(user_role, str) else user_role
+            email_pattern = r"^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$"
+            validation_errors = []
+
+            if not employee_id:
+                validation_errors.append("❌ Employee ID is required!")
+            if not employee_name:
+                validation_errors.append("❌ Full Name is required!")
+            if not department:
+                validation_errors.append("❌ Department is required!")
+            if not job_title:
+                validation_errors.append("❌ Job Title is required!")
+            if hire_date is None:
+                validation_errors.append("❌ Hire Date is required!")
+            if not email:
+                validation_errors.append("❌ Email is required!")
+            elif not re.fullmatch(email_pattern, email):
+                validation_errors.append("❌ Enter a valid email address (e.g., name@company.com).")
+            if not phone:
+                validation_errors.append("❌ Phone is required!")
+            elif re.search(r"[A-Za-z]", phone):
+                validation_errors.append("❌ Phone number cannot contain alphabetic characters.")
+
             # Validation for new employees
             if not st.session_state.get("edit_mode", False):
-                if not employee_id:
-                    st.error("❌ Employee ID is required!")
-                    st.stop()
                 if not password:
-                    st.error("❌ Password is required!")
-                    st.stop()
+                    validation_errors.append("❌ Password is required!")
                 if password != password_confirm:
-                    st.error("❌ Passwords do not match!")
-                    st.stop()
-            
-            if st.session_state.get("edit_mode", False):
-                if not employee_name:
-                    employee_name = st.session_state.employee_data.get('employee_name', '')
-                if not job_title:
-                    job_title = st.session_state.employee_data.get('job_title', '')
-                if not email:
-                    email = st.session_state.employee_data.get('email', '')
-                if not phone:
-                    phone = st.session_state.employee_data.get('phone', '')
+                    validation_errors.append("❌ Passwords do not match!")
+
+            if validation_errors:
+                for error in validation_errors:
+                    st.error(error)
+                st.stop()
 
             conn = get_db_connection()
             cursor = conn.cursor()
@@ -1227,7 +1281,8 @@ with tab2:
                 st.success(f"✅ Employee {employee_name} {action} successfully!")
                 
                 # Show credentials for new employees
-                if not st.session_state.get("edit_mode", False):
+                is_new_employee = not st.session_state.get("edit_mode", False)
+                if is_new_employee:
                     st.info(f"""
                     **User Account Created:**
                     - **Username:** `{employee_id}`
@@ -1248,6 +1303,29 @@ with tab2:
                 for key in ["username", "password", "password_confirm", "new_password", "confirm_password"]:
                     if key in st.session_state:
                         del st.session_state[key]
+                if is_new_employee:
+                    for key in [
+                        "employee_id_input",
+                        "employee_name_input",
+                        "department_input",
+                        "job_title_input",
+                        "hire_date_input",
+                        "email_input",
+                        "phone_input",
+                        "employee_photo_upload",
+                        "password_input",
+                        "password_confirm_input",
+                        "user_role_select",
+                        "employee_form_mode",
+                        "last_photo_upload_hash",
+                        "last_photo_upload_employee_id",
+                        "last_photo_upload_path",
+                        "pending_face_encoding",
+                        "pending_face_encoding_employee_id",
+                        "pending_face_encoding_photo_path",
+                    ]:
+                        if key in st.session_state:
+                            del st.session_state[key]
 
                 # Switch back to View Employees tab
                 st.query_params = {"tab": "view_employees"}
